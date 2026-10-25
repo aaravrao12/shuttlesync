@@ -1,0 +1,72 @@
+/* Design tokens. Channels are space-separated RGB so Tailwind can add alpha (rgb(var(--x) / .5)). */
+:root {
+  --ground: 233 235 238;      /* concrete */
+  --panel: 255 255 255;
+  --raised: 246 247 249;
+  --ink: 21 23 27;            /* asphalt */
+  --mute: 92 99 112;
+  --line: 208 212 219;
+  --brand: 123 30 46;         /* Plano maroon */
+  --brand-ink: 255 255 255;
+  --ok: 8 100 66;
+  --warn: 128 72 0;
+  --bad: 170 30 30;
+  --info: 36 82 190;
+  /* Building signage colors, tuned so white text has >= 4.5:1 */
+  --bld-a: 191 40 34;
+  --bld-b: 156 94 0;
+  --bld-c: 10 120 110;
+  --bld-d: 38 79 200;
+  --bld-e: 112 60 160;
+  --bld-h: 176 70 20;
+  --sign: 255 199 44;         /* school-bus yellow, used sparingly for the next-move sign */
+  --sign-ink: 21 23 27;
+  --radius: 0.375rem;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'], [data-theme='dark'] {
+  --ground: 15 16 19;
+  --panel: 25 27 32;
+  --raised: 34 37 44;
+  --ink: 238 240 243;
+  --mute: 160 167 180;
+  --line: 52 56 66;
+  --brand: 212 92 112;        /* lightened maroon for contrast on dark */
+  --brand-ink: 21 23 27;
+  --ok: 74 201 142;
+  --warn: 240 176 64;
+  --bad: 255 124 116;
+  --info: 128 164 255;
+  --bld-a: 226 84 76;
+  --bld-b: 226 160 40;
+  --bld-c: 52 190 175;
+  --bld-d: 110 150 255;
+  --bld-e: 178 140 235;
+  --bld-h: 240 150 90;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ground: 15 16 19;
+    --panel: 25 27 32;
+    --raised: 34 37 44;
+    --ink: 238 240 243;
+    --mute: 160 167 180;
+    --line: 52 56 66;
+    --brand: 212 92 112;
+    --brand-ink: 21 23 27;
+    --ok: 74 201 142;
+    --warn: 240 176 64;
+    --bad: 255 124 116;
+    --info: 128 164 255;
+    --bld-a: 226 84 76;
+    --bld-b: 226 160 40;
+    --bld-c: 52 190 175;
+    --bld-d: 110 150 255;
+    --bld-e: 178 140 235;
+    --bld-h: 240 150 90;
+    color-scheme: dark;
+  }
+}

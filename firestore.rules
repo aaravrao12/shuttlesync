@@ -1,0 +1,67 @@
+rules_version = '2';
+// ShuttleSync security rules. Hackathon-level but deliberately thought through:
+//  • Students read/write only their own student doc and their own check-ins/feedback.
+//  • Bus phones can only update live-location fields of a bus (never its secret or route).
+//  • Staff (teachers, front office, project team) are documents in /schools/{s}/staff/{uid}, created by an admin in the console.
+//    That is the REAL gate; the in-app staff PIN is only a speed bump for the pilot.
+//  • Evidence collections are readable by admin/team only. Analytics are write-only from clients.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /schools/{s} {
+      function signedIn() { return request.auth != null; }
+      function staffDoc() { return get(/databases/$(database)/documents/schools/$(s)/staff/$(request.auth.uid)); }
+      function isStaff() { return signedIn() && exists(/databases/$(database)/documents/schools/$(s)/staff/$(request.auth.uid)); }
+      function isAdmin() { return isStaff() && staffDoc().data.role in ['admin', 'team']; }
+      function onlyChanges(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
+
+      match /staff/{uid} { allow read: if signedIn() && request.auth.uid == uid; allow write: if false; } // managed in the console
+
+      // School configuration: everyone signed in can read; only admins change it.
+      match /buildings/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
+      match /stops/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
+      match /bellSchedule/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
+      match /settings/{id} { allow read: if signedIn(); allow write: if isStaff(); }
+
+      // Shuttles: a shuttle phone may only touch live fields. It can never change the QR secret or capacity.
+      match /buses/{id} {
+        allow read: if signedIn();
+        allow create, delete: if isAdmin();
+        allow update: if isAdmin() || (signedIn() && onlyChanges(['lastLocation', 'status', 'currentStopId', 'nextStopId', 'etaToNextStop', 'delayMinutes', 'avgSpeedMps', 'activeRunId', 'runSeq', 'isSimulated', 'reportedDelayMin']));
+      }
+      // Runs (one-way trips between the A loop and the H loop) are created and closed by the shuttle phone's own GPS engine.
+      match /runs/{id} {
+        allow read: if signedIn();
+        allow create: if signedIn();
+        allow update: if isStaff() || (signedIn() && onlyChanges(['status', 'departedAt', 'arrivedAt', 'arrivedStopId', 'fromStopId']));
+        allow delete: if isStaff();
+      }
+
+      // People
+      match /students/{id} {
+        allow read: if isStaff() || (signedIn() && (request.auth.uid == id || resource.data.ownerUid == request.auth.uid));
+        allow create: if (signedIn() && request.auth.uid == id) || isAdmin();
+        allow update: if (signedIn() && (request.auth.uid == id || resource.data.ownerUid == request.auth.uid)) || isAdmin();
+        allow delete: if isAdmin();
+      }
+      match /teachers/{id} { allow read: if signedIn(); allow write: if isStaff(); }
+
+      // Check-ins: a student creates their own; a kiosk/teacher (staff) creates for others. Students can delete their own (privacy).
+      match /checkins/{id} {
+        allow read: if isStaff() || (signedIn() && resource.data.studentId == request.auth.uid);
+        allow create: if (signedIn() && request.resource.data.studentId == request.auth.uid) || isStaff();
+        allow update: if isStaff();
+        allow delete: if isStaff() || (signedIn() && resource.data.studentId == request.auth.uid);
+      }
+      match /events/{id} { allow read: if isStaff(); allow create: if signedIn(); allow update, delete: if isAdmin(); }
+      match /attendance/{id} { allow read, write: if isStaff(); }
+
+      // Evidence: admin/team read; clients can only add analytics/feedback.
+      match /analytics/{id} { allow create: if signedIn(); allow read: if isAdmin(); allow update, delete: if false; }
+      match /feedback/{id} { allow create: if signedIn(); allow read: if isAdmin(); allow update, delete: if false; }
+      match /usabilityTests/{id} { allow read, write: if isAdmin(); }
+      match /susResponses/{id} { allow read, write: if isAdmin(); }
+      match /baseline/{id} { allow read, write: if isAdmin(); }
+      match /changelog/{id} { allow read: if isAdmin(); allow write: if isAdmin(); }
+    }
+  }
+}

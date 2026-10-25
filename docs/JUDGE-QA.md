@@ -1,0 +1,27 @@
+# Judge Q&A (25 likely questions, short answers)
+
+1. **What problem does this solve?** Construction closed Buildings B and C, so students ride one shuttle loop between the main campus and the Annex across the road. A slow shuttle becomes the student's tardy, teachers lose class time sorting it out, and the office fixes records after the fact. *(Numbers: Results page, from our survey and ride-along. Say the real ones.)*
+2. **Who uses it?** Students (live shuttle tracker, "Will I make it?", check in), teachers (live roster), the attendance office (fewer disputes), and a passenger on each shuttle (shares location).
+3. **Did anyone actually use it?** Results page: pilot participants, days, check-ins, and the round 1 → round 2 usability numbers, each with n. Simulated data is excluded and labeled.
+4. **What did testing change?** The Changelog: "users said X → we changed Y → result". Top three are on the Results page and the pitch.
+5. **What if a student scans and doesn't get on?** The scan only proves they were near the bus phone at that moment. A teacher sees every scan, can override with a reason, and the false-flag rate is tracked. It is a fairness tool, not a surveillance one.
+6. **What if the shuttle phone dies?** Scans become "unverified: shuttle phone offline" (not accusations); the teacher decides. Kiosk and manual marking still work, and the home screen says it is waiting for a signal rather than guessing.
+7. **Isn't tracking students creepy?** We track shuttles, not people. A student's location is read once at the scan to compare with the bus, stored on that check-in only, and deleted after 30 days. Students can delete theirs any time.
+8. **What if the AI is wrong?** AI never decides attendance. It reads a schedule photo into an editable form, and writes one sentence for teachers. Every number in that sentence is checked against the computed counts; a mismatch falls back to a plain template. The whole app works with AI off.
+9. **How much does it cost?** $0: Firebase Spark, Vercel hobby, free OSM map tiles, Gemini free tier. The free-tier math is in DECISIONS.md.
+10. **How would the district adopt this?** The setup wizard configures buildings, stops, routes, bell schedule and CSV enrollment; no code. A named teacher plus a student team run it; handoff guide in the README.
+11. **What about students without smartphones?** Stop Kiosk: a monitor at the stop taps the student's name. Teachers can also mark manually. Nobody is excluded.
+12. **What if GPS is bad indoors?** Allowed distance widens with GPS accuracy (min 75 m). If still unsure → "unverified", teacher decides.
+13. **Can a student cheat by sharing a screenshot of the QR?** The code rotates every minute and the phone must also be near the shuttle phone. A printed static QR proves only which bus, so it relies on location.
+14. **Can students forge codes?** On the free tier the bus secret is readable by the client (documented limit). The distance check still applies, teachers see every scan, and production would verify in a Cloud Function.
+15. **Who can see what?** Students: their own data. Teachers/office: their classes' check-ins. Evidence data: admin/team only. Enforced by Firestore rules (staff are documents in the console), not just the in-app PIN.
+16. **Is it FERPA-minded?** Designed that way: minimal data, no names to AI, retention limit, written school approval before any real pilot. We are not lawyers; the school decides.
+17. **How do you decide a rider is excused, with no timetable?** We measure each rider's own ride: scan → the shuttle reaching the other end. Excused if it took longer than a normal ride (5 min) plus a threshold (3 min), or the shuttle arrives after their class bell. Both numbers are admin-configurable. No AI.
+18. **How does it pick the best bus?** It doesn't: there is no choice of bus. Any shuttle at your stop goes to the other end. What students need to know is whether they need the shuttle at all and whether they will make it, so that is what the home screen shows. (We first assumed otherwise; see DECISIONS.md.)
+19. **How do you know when a trip starts and ends?** From the shuttle's own GPS: a run starts when it leaves a stop's geofence and ends when it enters the stop at the other end. The geofence has a 1.5× exit radius (hysteresis) so GPS wobble cannot flicker.
+20. **What if Wi-Fi/Firebase is down?** The app falls back to an offline local store automatically; demo mode works fully offline; there is also a recorded backup video.
+21. **How do you know your numbers are real?** They are computed from logged data by tested functions (`metrics.ts`), and every figure shows n and source. Placeholders are visibly labeled.
+22. **Does it work in Spanish?** Yes, EN/ES for every student/teacher/public screen; a test fails if a string has no translation.
+23. **Is it accessible?** WCAG AA contrast, keyboard focus, icon + text statuses, large-text option, reduced-motion respected; axe audits pass in light and dark across main screens.
+24. **What would you do next?** Confirm the stop coordinates on site, measure the real ride time,  per-shuttle live collection to cut reads, server-side verification, SIS roster sync, a district-level view.
+25. **What are the limits?** Real-device behaviour must be tested on actual phones before the pilot (checklist: `DEVICE-TEST.md`; not yet run); free-tier read quota limits a pilot to ~30 live users on 1–2 periods; printed QR is weaker than rotating.
