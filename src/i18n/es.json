@@ -719,5 +719,13 @@
  "simulated check-ins": "registros simulados",
  "simulated shuttle runs on time": "recorridos simulados a tiempo",
  "busiest simulated loop, riders at 7:50 AM": "recorrido simulado más lleno, pasajeros a las 7:50",
- "Before putting ShuttleSync in front of real riders, we simulated one week of the Main to Annex shuttle loop to stress-test the design. These numbers come from that simulation, not from a live pilot. Next step: a pilot with real students and teachers.": "Antes de poner ShuttleSync frente a pasajeros reales, simulamos una semana del recorrido Principal–Anexo para probar el diseño. Estas cifras vienen de esa simulación, no de un piloto real. Siguiente paso: un piloto con estudiantes y maestros reales."
+ "Before putting ShuttleSync in front of real riders, we simulated one week of the Main to Annex shuttle loop to stress-test the design. These numbers come from that simulation, not from a live pilot. Next step: a pilot with real students and teachers.": "Antes de poner ShuttleSync frente a pasajeros reales, simulamos una semana del recorrido Principal–Anexo para probar el diseño. Estas cifras vienen de esa simulación, no de un piloto real. Siguiente paso: un piloto con estudiantes y maestros reales.",
+ "Andrew": "Andrew",
+ "Robert": "Robert",
+ "Abhay": "Abhay",
+ "Mason": "Mason",
+ "Student app, route planner, schedule photo AI": "App del estudiante, planificador de rutas, IA de foto de horario",
+ "QR check-in, verification, stop kiosk": "Registro por QR, verificación, quiosco de parada",
+ "Bus mode, geofencing, ETA, real-time dashboard": "Modo autobús, geocercas, hora estimada de llegada, panel en tiempo real",
+ "Evidence, Results, Test Mode, AI note, pitch": "Evidencia, resultados, modo de prueba, nota de IA, presentación"
 }
