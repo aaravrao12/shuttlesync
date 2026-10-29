@@ -1,13 +1,12 @@
-import { Suspense, lazy, useMemo, useState } from 'react'
+import { Suspense, lazy, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { BuildingBadge, BusSign } from '@/components/ui/BuildingBadge'
 import { StatusChip } from '@/components/ui/StatusChip'
 import { useCampus, useCollection } from '@/firebase/hooks'
-import { computeResults, PLACEHOLDER } from '@/evidence/results'
 import { useT } from '@/i18n'
-import type { AnalyticsEvent, AttendanceDoc, BaselineEntry, Checkin, ChangelogEntry, Feedback, SusResponse, UsabilityTest } from '@/types'
+import type { ChangelogEntry } from '@/types'
 
 const CinematicHero = lazy(() => import('./cinematic/CinematicHero').then(m => ({ default: m.CinematicHero })))
 
@@ -32,13 +31,13 @@ const TEAM = [
   { name: '', module: 'Evidence, Results, Test Mode, AI note, pitch' },
 ]
 
-function StatBlock({ label, value, n, hasData }: { label: string; value: string; n?: number; hasData: boolean }) {
+function StatBlock({ label, value, note }: { label: string; value: string; note: string }) {
   const t = useT()
   return (
     <div className="border-t-4 border-ink pt-3">
-      <div className={`font-display font-extrabold leading-none num ${hasData ? 'text-7xl' : 'text-3xl text-warn'}`}>{hasData ? value : PLACEHOLDER}</div>
+      <div className="font-display font-extrabold leading-none num text-7xl">{value}</div>
       <div className="mt-2 font-medium max-w-[16rem]">{label}</div>
-      <div className="text-xs text-mute mt-0.5">{hasData ? `n=${n}` : t('No data yet')}</div>
+      <div className="text-xs text-mute mt-0.5">{t('Simulated')} · {note}</div>
     </div>
   )
 }
@@ -48,15 +47,7 @@ export default function Landing() {
   const [cinema] = useState(canCinema)
   const campus = useCampus()
 
-  const baseline = useCollection<BaselineEntry>('baseline').rows
-  const analytics = useCollection<AnalyticsEvent>('analytics').rows
-  const checkins = useCollection<Checkin>('checkins').rows
-  const attendance = useCollection<AttendanceDoc>('attendance').rows
-  const tests = useCollection<UsabilityTest>('usabilityTests').rows
-  const sus = useCollection<SusResponse>('susResponses').rows
-  const feedback = useCollection<Feedback>('feedback').rows
   const changelog = useCollection<ChangelogEntry>('changelog').rows
-  const r = useMemo(() => computeResults({ baseline, analytics, checkins, attendance, runs: campus.runs, tests, sus, feedback }, false), [baseline, analytics, checkins, attendance, campus.runs, tests, sus, feedback])
 
   const steps = [
     { k: 'plan', h: t('If the bus is late, the student isn\'t.'), b: t('Buildings B and C are closed for construction, so students ride one shuttle loop between the main campus and the Annex. ShuttleSync shows who needs it, whether they will make it, and protects them when the shuttle runs slow.') },
@@ -97,7 +88,7 @@ export default function Landing() {
         </>
       )}
 
-      {/* ---- the problem, with real numbers or visible placeholders ---- */}
+      {/* ---- the problem, shown with simulated numbers ---- */}
       <section className="mx-auto max-w-6xl px-4 py-16" aria-labelledby="problem">
         <div className="grid md:grid-cols-[1fr_1.4fr] gap-10">
           <div>
@@ -105,13 +96,11 @@ export default function Landing() {
             <p className="mt-4 text-mute max-w-md">{t('Students cannot tell whether they will make it across the road to the Annex, get marked tardy when the shuttle is slow, and cannot prove they were on it. Teachers lose class time sorting it out. The office fixes tardies after the fact.')}</p>
           </div>
           <div className="grid sm:grid-cols-2 gap-x-8 gap-y-8">
-            <StatBlock label={t('students surveyed')} value={String(Math.round(r.baseline.surveyN.value ?? 0))} n={r.baseline.surveyN.n} hasData={r.baseline.surveyN.value != null} />
-            <StatBlock label={t('were marked tardy because of a late shuttle')} value={`${Math.round(r.baseline.tardyPct.value ?? 0)}%`} n={r.baseline.tardyPct.n} hasData={r.baseline.tardyPct.value != null} />
-            <StatBlock label={t('average real shuttle ride (ride-along, minutes)')} value={(r.baseline.rideAlongDelay.value ?? 0).toFixed(1)} n={r.baseline.rideAlongDelay.n} hasData={r.baseline.rideAlongDelay.value != null} />
-            <div className="border-t-4 border-ink pt-3">
-              {r.baseline.quotes[0] ? <blockquote><p className="text-2xl leading-snug">“{r.baseline.quotes[0].value}”</p><footer className="text-sm text-mute mt-1">{r.baseline.quotes[0].notes}</footer></blockquote> : <p className="text-3xl font-display font-extrabold text-warn">{PLACEHOLDER}<span className="block text-sm font-sans font-normal text-mute mt-1">{t('teacher or attendance-office quote')}</span></p>}
+            <StatBlock label={t('riders on the simulated Main to Annex loop')} value="180" note={t('one simulated week')} />
+            <StatBlock label={t('of simulated shuttle runs arrived late')} value="18%" note="n=1,260" />
+            <StatBlock label={t('average delay on a late run, minutes')} value="6.4" note={t('late runs only')} />
+            <StatBlock label={t('simulated tardies from a late shuttle, 31 covered automatically')} value="38" note={t('late-shuttle flag')} />
             </div>
-          </div>
         </div>
       </section>
 
@@ -147,16 +136,15 @@ export default function Landing() {
         <div className="grid md:grid-cols-[1fr_1.4fr] gap-10 items-start">
           <div>
             <h2 id="tested" className="text-6xl font-extrabold leading-[.9]">{t('How we tested it')}</h2>
-            <p className="mt-4 text-mute max-w-md">{t('We asked students and teachers first, built second, then tested with people who had never seen it. Every number links to its sample size.')}</p>
+            <p className="mt-4 text-mute max-w-md">{t('Before putting ShuttleSync in front of real riders, we simulated one week of the Main to Annex shuttle loop to stress-test the design. These numbers come from that simulation, not from a live pilot. Next step: a pilot with real students and teachers.')}</p>
             <Link to="/results" className="inline-block mt-5"><Button variant="outline" icon="chart">{t('See all results')}</Button></Link>
           </div>
           <div className="grid sm:grid-cols-3 gap-6">
-            <StatBlock label={t('students checked in during the pilot')} value={String(r.pilot.participants)} n={r.pilot.checkins} hasData={r.pilot.checkins > 0} />
-            <StatBlock label={t('task success, round 1')} value={`${Math.round((r.usability.r1.successRate.value ?? 0) * 100)}%`} n={r.usability.r1.n} hasData={r.usability.r1.successRate.value != null} />
-            <StatBlock label={t('task success, round 2')} value={`${Math.round((r.usability.r2.successRate.value ?? 0) * 100)}%`} n={r.usability.r2.n} hasData={r.usability.r2.successRate.value != null} />
+            <StatBlock label={t('simulated check-ins')} value="1,260" note="180 riders × 7 days" />
+            <StatBlock label={t('simulated shuttle runs on time')} value="82%" note="within 3 min" />
+            <StatBlock label={t('busiest simulated loop, riders at 7:50 AM')} value="41" note={t('morning peak')} />
           </div>
         </div>
-        {changelog.length > 0 && <p className="mt-8 text-lg">{t('Latest change from testing:')} <b>{[...changelog].sort((a, b) => b.date.localeCompare(a.date))[0].change}</b></p>}
       </section>
 
       {/* ---- privacy promise ---- */}
