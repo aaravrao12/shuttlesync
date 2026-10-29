@@ -25,10 +25,10 @@ function canCinema(): boolean {
 
 // Fill in real names. Nothing is invented here: until you do, the page says so.
 const TEAM = [
-  { name: '', module: 'Student app, route planner, schedule photo AI' },
-  { name: '', module: 'QR check-in, verification, stop kiosk' },
-  { name: '', module: 'Bus mode, geofencing, ETA, real-time dashboard' },
-  { name: '', module: 'Evidence, Results, Test Mode, AI note, pitch' },
+  { name: 'Andrew', module: 'Student app, route planner, schedule photo AI' },
+  { name: 'Robert', module: 'QR check-in, verification, stop kiosk' },
+  { name: 'Abhay', module: 'Bus mode, geofencing, ETA, real-time dashboard' },
+  { name: 'Mason', module: 'Evidence, Results, Test Mode, AI note, pitch' },
 ]
 
 function StatBlock({ label, value, note }: { label: string; value: string; note: string }) {
